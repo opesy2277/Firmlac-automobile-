@@ -1,26 +1,159 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --fa-navy: #071a3d;
+  --fa-navy-light: #0d2d63;
+  --fa-blue: #1557c0;
+  --fa-red: #d71920;
+
+  --fa-white: #ffffff;
+  --fa-background: #f5f7fa;
+  --fa-surface: #ffffff;
+
+  --fa-text: #101828;
+  --fa-text-secondary: #667085;
+  --fa-border: #e4e7ec;
+
+  --fa-success: #12b76a;
+  --fa-warning: #f79009;
+  --fa-danger: #d92d20;
+
+  --fa-radius-sm: 8px;
+  --fa-radius-md: 12px;
+  --fa-radius-lg: 18px;
+
+  --fa-shadow-sm: 0 1px 3px rgba(16, 24, 40, 0.08);
+  --fa-shadow-md: 0 8px 24px rgba(16, 24, 40, 0.1);
+  --fa-shadow-lg: 0 18px 45px rgba(16, 24, 40, 0.14);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: var(--fa-background);
+  color: var(--fa-text);
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+header,
+nav,
+button {
+  font-family: var(--font-roboto), Arial, Helvetica, sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button {
+  cursor: pointer;
+}
+
+button.bg-\[var\(--fa-red\)\],
+button.bg-\[var\(--fa-blue\)\],
+button.bg-\[var\(--fa-navy\)\],
+a.bg-\[var\(--fa-red\)\],
+a.bg-\[var\(--fa-blue\)\],
+a.bg-\[var\(--fa-navy\)\] {
+  color: #ffffff !important;
+}
+
+button.bg-\[var\(--fa-red\)\] *,
+button.bg-\[var\(--fa-blue\)\] *,
+button.bg-\[var\(--fa-navy\)\] *,
+a.bg-\[var\(--fa-red\)\] *,
+a.bg-\[var\(--fa-blue\)\] *,
+a.bg-\[var\(--fa-navy\)\] * {
+  color: #ffffff !important;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: var(--fa-navy);
+  color: var(--fa-white);
+}
+
+.container {
+  width: min(100% - 32px, 1280px);
+  margin-inline: auto;
+}
+
+.section {
+  padding-block: 72px;
+}
+
+.section-title {
+  margin: 0;
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.section-description {
+  margin-top: 12px;
+  color: var(--fa-text-secondary);
+  line-height: 1.7;
+  max-width: 650px;
+}
+
+.card {
+  background: var(--fa-surface);
+  border: 1px solid var(--fa-border);
+  border-radius: var(--fa-radius-lg);
+  box-shadow: var(--fa-shadow-sm);
+}
+
+@media (max-width: 768px) {
+  .container {
+    width: min(100% - 24px, 1280px);
+  }
+
+  .section {
+    padding-block: 48px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
