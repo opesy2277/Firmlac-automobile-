@@ -1,7 +1,8 @@
+
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-const ADMIN_EMAIL = process.env.FIRMLAC_ADMIN_EMAIL;
+const OWNER_EMAIL = process.env.FIRMLAC_ADMIN_EMAIL?.trim().toLowerCase();
 
 export async function requireAdmin() {
   const supabase = await createClient();
@@ -15,11 +16,29 @@ export async function requireAdmin() {
     redirect("/login");
   }
 
-  if (!ADMIN_EMAIL) {
+  if (!OWNER_EMAIL) {
     throw new Error("FIRMLAC_ADMIN_EMAIL is not configured.");
   }
 
-  if (!user.email || user.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+  const email = user.email?.trim().toLowerCase();
+
+  // The owner always has administrator access.
+  if (email && email === OWNER_EMAIL) {
+    return user;
+  }
+
+  // Other administrators must have the admin role in their profile.
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("user_type")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profileError) {
+    throw new Error("Unable to verify administrator permissions.");
+  }
+
+  if (profile?.user_type !== "admin") {
     redirect("/");
   }
 

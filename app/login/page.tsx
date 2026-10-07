@@ -1,3 +1,4 @@
+
 "use client";
 
 import { FormEvent, useState } from "react";
@@ -19,16 +20,12 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  const [showPassword, setShowPassword] =
-    useState(false);
-
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleSubmit(
-    event: FormEvent<HTMLFormElement>
-  ) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setError("");
@@ -43,31 +40,59 @@ export default function LoginPage() {
       });
 
     if (loginError) {
-  console.error(
-    "SUPABASE LOGIN ERROR:",
-    {
-      message: loginError.message,
-      status: loginError.status,
-      code: loginError.code,
+      console.error("SUPABASE LOGIN ERROR:", {
+        message: loginError.message,
+        status: loginError.status,
+        code: loginError.code,
+      });
+
+      const message =
+        loginError.code === "email_not_confirmed"
+          ? "Please confirm your email address before signing in."
+          : loginError.code === "invalid_credentials"
+            ? "The email or password is incorrect."
+            : loginError.message || "Unable to sign in. Please try again.";
+
+      setError(message);
+      setLoading(false);
+      return;
     }
-  );
 
-  const message =
-    loginError.code === "email_not_confirmed"
-      ? "Please confirm your email address before signing in."
-      : loginError.code === "invalid_credentials"
-        ? "The email or password is incorrect."
-        : loginError.message ||
-          "Unable to sign in. Please try again.";
-
-  setError(message);
-  setLoading(false);
-  return;
-}
-    // Successful login → Account/Profile page
     router.push("/account");
     router.refresh();
   }
+
+  async function handleGoogleSignIn() {
+    setError("");
+    setGoogleLoading(true);
+
+    try {
+      const supabase = createClient();
+
+      const { error: googleError } =
+        await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: `${window.location.origin}/auth/callback?next=/account`,
+          },
+        });
+
+      if (googleError) {
+        throw googleError;
+      }
+    } catch (err) {
+      console.error("GOOGLE SIGN-IN ERROR:", err);
+
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to start Google sign-in. Please try again."
+      );
+      setGoogleLoading(false);
+    }
+  }
+
+  const busy = loading || googleLoading;
 
   return (
     <main className="min-h-[calc(100vh-80px)] bg-[var(--fa-background)]">
@@ -90,26 +115,67 @@ export default function LoginPage() {
               </h1>
 
               <p className="mt-2 text-sm leading-6 text-[var(--fa-text-secondary)]">
-                Sign in to access your Firmlac Automobile
-                account.
+                Sign in to access your Firmlac Automobile account.
               </p>
             </div>
 
             {error && (
-              <div className="mt-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                <AlertCircle
-                  size={19}
-                  className="mt-0.5 shrink-0"
-                />
-
+              <div
+                role="alert"
+                className="mt-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+              >
+                <AlertCircle size={19} className="mt-0.5 shrink-0" />
                 <p>{error}</p>
               </div>
             )}
 
-            <form
-              onSubmit={handleSubmit}
-              className="mt-7 space-y-5"
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={busy}
+              className="mt-7 flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-[var(--fa-border)] bg-white text-sm font-bold text-[var(--fa-text)] transition hover:bg-[var(--fa-background)] disabled:cursor-not-allowed disabled:opacity-70"
             >
+              {googleLoading ? (
+                <Loader2 size={19} className="animate-spin" />
+              ) : (
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 48 48"
+                  className="h-5 w-5"
+                >
+                  <path
+                    fill="#EA4335"
+                    d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 3.14 13.22l7.98 6.19C13.01 13.72 18.04 9.5 24 9.5Z"
+                    transform="translate(0 4)"
+                  />
+                  <path
+                    fill="#4285F4"
+                    d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.76 7.18l7.73 6C44.42 38.01 46.98 31.93 46.98 24.55Z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M10.53 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.13.76-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.87.93 7.52 2.53 10.78l7.98-6.19Z"
+                    transform="translate(1 0)"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6c-2.15 1.45-4.92 2.3-8.18 2.3-5.96 0-11.01-4.02-12.81-9.45l-7.98 6.19C6.6 42.62 14.62 48 24 48Z"
+                  />
+                </svg>
+              )}
+
+              {googleLoading ? "Connecting to Google..." : "Continue with Google"}
+            </button>
+
+            <div className="my-6 flex items-center gap-4">
+              <div className="h-px flex-1 bg-[var(--fa-border)]" />
+              <span className="text-xs font-medium text-[var(--fa-text-secondary)]">
+                OR CONTINUE WITH EMAIL
+              </span>
+              <div className="h-px flex-1 bg-[var(--fa-border)]" />
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label
                   htmlFor="email"
@@ -128,9 +194,7 @@ export default function LoginPage() {
                     id="email"
                     type="email"
                     value={email}
-                    onChange={(event) =>
-                      setEmail(event.target.value)
-                    }
+                    onChange={(event) => setEmail(event.target.value)}
                     placeholder="Enter your email"
                     autoComplete="email"
                     required
@@ -155,15 +219,9 @@ export default function LoginPage() {
 
                   <input
                     id="password"
-                    type={
-                      showPassword
-                        ? "text"
-                        : "password"
-                    }
+                    type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={(event) =>
-                      setPassword(event.target.value)
-                    }
+                    onChange={(event) => setPassword(event.target.value)}
                     placeholder="Enter your password"
                     autoComplete="current-password"
                     required
@@ -172,38 +230,23 @@ export default function LoginPage() {
 
                   <button
                     type="button"
-                    aria-label={
-                      showPassword
-                        ? "Hide password"
-                        : "Show password"
-                    }
-                    onClick={() =>
-                      setShowPassword(
-                        (visible) => !visible
-                      )
-                    }
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    onClick={() => setShowPassword((visible) => !visible)}
                     className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-[var(--fa-text-secondary)] transition hover:bg-[var(--fa-background)] hover:text-[var(--fa-text)]"
                   >
-                    {showPassword ? (
-                      <EyeOff size={19} />
-                    ) : (
-                      <Eye size={19} />
-                    )}
+                    {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
                   </button>
                 </div>
               </div>
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={busy}
                 className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[var(--fa-red)] text-sm font-bold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {loading ? (
                   <>
-                    <Loader2
-                      size={19}
-                      className="animate-spin"
-                    />
+                    <Loader2 size={19} className="animate-spin" />
                     Signing in...
                   </>
                 ) : (

@@ -1,4 +1,6 @@
+
 import { requireAdmin } from "@/lib/auth/admin";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
   CarFront,
@@ -6,6 +8,7 @@ import {
   Store,
   ShieldCheck,
   ArrowRight,
+  UserCog,
 } from "lucide-react";
 
 const adminCards = [
@@ -18,22 +21,27 @@ const adminCards = [
   },
   {
     title: "Dealers",
-    description:
-      "Review and manage dealer accounts and profiles.",
+    description: "Review and manage dealer accounts and profiles.",
     href: "/admin/dealers",
     icon: Store,
   },
   {
     title: "Users",
-    description:
-      "Manage buyers, dealers, and private sellers.",
+    description: "Manage buyers, dealers, and private sellers.",
     href: "/admin/users",
     icon: Users,
   },
 ];
 
 export default async function AdminPage() {
-  await requireAdmin();
+  const user = await requireAdmin();
+
+  const ownerEmail =
+    process.env.FIRMLAC_ADMIN_EMAIL?.trim().toLowerCase();
+
+  const isOwner =
+    !!ownerEmail &&
+    user.email?.trim().toLowerCase() === ownerEmail;
 
   return (
     <main className="min-h-screen">
@@ -95,6 +103,33 @@ export default async function AdminPage() {
                 </Link>
               );
             })}
+
+            {isOwner && (
+              <Link
+                href="/admin/administrators"
+                className="group rounded-2xl border border-[var(--fa-border)] bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-[var(--fa-blue)] hover:shadow-[var(--fa-shadow-md)]"
+              >
+                <div className="flex items-start justify-between gap-5">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--fa-background)] text-[var(--fa-navy)] transition group-hover:bg-[var(--fa-navy)] group-hover:text-white">
+                    <UserCog size={23} />
+                  </div>
+
+                  <ArrowRight
+                    size={20}
+                    className="text-[var(--fa-text-secondary)] transition group-hover:translate-x-1 group-hover:text-[var(--fa-blue)]"
+                  />
+                </div>
+
+                <h2 className="mt-6 text-xl font-bold text-[var(--fa-text)]">
+                  Manage Administrators
+                </h2>
+
+                <p className="mt-2 text-sm leading-6 text-[var(--fa-text-secondary)]">
+                  View administrator accounts and manage who can access
+                  the admin dashboard.
+                </p>
+              </Link>
+            )}
           </div>
         </div>
       </section>
